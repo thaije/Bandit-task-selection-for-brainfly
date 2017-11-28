@@ -70,7 +70,7 @@ stimDuration=isi;
 %---------------------------------------------------------------------------------------------------------
 % IM calibration config
 
-symbCue      ={'RH' 'LH'}; % sybmol cue in addition to positional one. N.B. start's on **RIGHT** and runs anti-clock-wise
+symbCue      ={'RH' 'T' 'LH' 'F'}; % sybmol cue in addition to positional one. N.B. start's on **RIGHT** and runs anti-clock-wise
 nSymbs       =numel(symbCue); 
 baselineClass=[]; % if set, treat baseline phase as a separate class to classify
 rtbClass     =[];% if set, treat post-trial return-to-baseline phase as separate class to classify

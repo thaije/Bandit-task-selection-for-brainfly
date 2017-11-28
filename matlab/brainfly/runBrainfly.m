@@ -117,7 +117,7 @@ while (ishandle(contFig))
     sendEvent(phaseToRun,'start');
     try
       preConfigured=true;      
-      imCalibrateStimulus;
+      imCalibrateStimulusBandit;
       preConfigured=false;
     catch
        le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
