@@ -1,3 +1,36 @@
+
+# Changes 
+
+Focus on task-selection for Brainfly game, i.e. find optimal imagined movement (tongue, righthand, lefthand, feet) for user. 
+
+## Approaches
+Two approaches, each with the same cost (e.g. 80 test samples).
+
+### Uniform approach 
+Train the user an equal amount of times on each imagined movement type (e.g. 20 each), and use the one which works best. 
+Each movement type has its own classifier.
+
+### Multi-armed bandit approach
+Task-selection can be seen as a multi-armed bandit approach. During training switch movement type depending on the most 
+promising movement according to the policy (e.g. e-greedy). Each movement type also has its own classifier. 
+
+## Training / calibration
+During training the user is shown an image of the imagined movement the user should activate. 
+
+### File changes
+`/matlab/imaginedMovement/imCalibrateStimulusBandit.m`
+- Stimulus presentation changed to work with images
+
+`/matlab/brainfly/configureGame.m`
+- symbCue changed to add the extra limbs (tongue and feet) for our experiment 
+
+
+# How to run:
+- start debug_quickstart
+- start /matlab/brainfly/run_brainfly(.m or whatever version you want)
+
+
+
 # Buffer BCI
 
 Buffer BCI is a platform independent and language agnostic framework
