@@ -23,13 +23,6 @@ configureGame;
          'L) Load training data'     'loadtraining';
 			'q) exit'                   'quit';
           };
-      
-  menuApproach={'1) Uniform approach'       'uniform';
-                    '2) Bandit approach'        'bandit';
-                    '' '';
-                    'q) exit'                   'quit';
-                  };
-       
   txth=text(.25,.5,menustr(:,1),'fontunits','pixel','fontsize',.05*wSize(4),...
 				'HorizontalAlignment','left','color',[1 1 1]);
   ph=plot(1,0,'k'); % BODGE: point to move around to update the plot to force key processing
@@ -121,6 +114,11 @@ while (ishandle(contFig))
        end
        sendEvent(phaseToRun,'start');
        
+       menuApproach={'1) Uniform approach'       'uniform';
+                    '2) Bandit approach'        'bandit';
+                    '' '';
+                    'q) exit'                   'quit';
+                  };
         set(txth,'string', menuApproach(:,1))
         drawnow;
         approachChosen=false;
@@ -158,8 +156,8 @@ while (ishandle(contFig))
                     imCalibrateStimulusBandit;
                 case {'quit','exit'};
                     break;
-            end
             preConfigured=false;
+            end
         end
         if ( ~isempty(strfind(phaseToRun,'calibrat')) ) sendEvent('calibrate','end'); end  
         set(txth,'string', menustr(:,1))
@@ -258,48 +256,71 @@ while (ishandle(contFig))
    case {'brainfly'};
     sendEvent('subject',subject);
     sendEvent(phaseToRun,'start');
-    set(txth,'string', menuApproach(:,1))
-    drawnow;
-    approachChosen=false;
-    while(~approachChosen)
-        set(contFig,'visible','on');
+    
+   menuApproach={'1) Uniform approach'       'uniform';
+                    '2) Bandit approach'        'bandit';
+                    '' '';
+                    'q) exit'                   'quit';
+                  };
+        set(txth,'string', menuApproach(:,1))
+        drawnow;
+        approachChosen=false;
+        while(~approachChosen)
+            set(contFig,'visible','on');
 
-        % Get key press for approach to run
-        modekey=get(contFig, 'userdata');
-        approachToRun=[];
-        if (~isempty(modekey)) 	 
-            fprintf('key=%s\n',modekey);
+            % Get key press for approach to run
+            modekey=get(contFig, 'userdata');
             approachToRun=[];
 
-            if ( ischar(modekey(1)) )
-                ri = strncmpi(modekey(1),menuApproach(:,1),1); % get the row in the instructions
-                if ( any(ri) ) 
-                    approachToRun = menuApproach{find(ri,1),2};
-                elseif ( any(strcmp(modekey(1),{'q','Q'})) )
-                    break;
-                end
-            end
-            set(contFig,'userdata',[]);
-        end
+            if (~isempty(modekey)) 	 
+                fprintf('key=%s\n',modekey);
+                approachToRun=[];
 
-        if ( isempty(approachToRun) ) pause(.3); continue; end;
-        fprintf('Start approach : %s\n',approachToRun);  
-        set(contFig,'visible','off');drawnow;
-        approachChosen=true;
-        preConfigured=true;  
-        sendEvent('startPhase.cmd','contfeedback');     
-        switch approachToRun;
-            case('uniform')
-                brainfly;               
-            case('bandit')
-                brainflyBandit;
-            case {'quit','exit'};
-                break;
+                if ( ischar(modekey(1)) )
+                    ri = strncmpi(modekey(1),menuApproach(:,1),1); % get the row in the instructions
+                    if ( any(ri) ) 
+                        approachToRun = menuApproach{find(ri,1),2};
+                    elseif ( any(strcmp(modekey(1),{'q','Q'})) )
+                        break;
+                    end
+                end
+                set(contFig,'userdata',[]);
+            end
+
+            if ( isempty(approachToRun) ) pause(.3); continue; end;
+            fprintf('Start approach : %s\n',approachToRun);  
+            set(contFig,'visible','off');drawnow;
+            approachChosen=true;
+            preConfigured=true;    
+            switch approachToRun;
+                case('uniform')
+                    imCalibrateStimulus;                   
+                case('bandit')
+                    imCalibrateStimulusBandit;
+                case {'quit','exit'};
+                    break;
+            preConfigured=false;
+            end
         end
-        preConfigured=false;
+    
+    
+    
+    
+    
+    
+    
+    try
+      sendEvent('startPhase.cmd','contfeedback');
+      brainfly;
+    catch
+       le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
+	  	 if ( ~isempty(le.stack) )
+	  	   for i=1:numel(le.stack);
+	  	 	 fprintf('%s>%s : %d\n',le.stack(i).file,le.stack(i).name,le.stack(i).line);
+	  	   end;
+	  	 end
     end
     sendEvent('contfeedback','end');
-    set(txth,'string', menustr(:,1))
     sendEvent('test','end');
     sendEvent(phaseToRun,'end');
 
