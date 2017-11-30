@@ -28,12 +28,8 @@
 % Uniform approach
 % E.g. if we have 4 movements, and 80 trials. Then create an array af length
 % 4x80 where each movement is done (80/4=) 20 trials sequentually.
-tgtSeq = [];
-for symb=1:nSymbs;
-    temp = zeros(nSymbs, nSeq/4);
-    temp(symb, :) = 1;
-    tgtSeq = cat(2,tgtSeq, temp);
-end
+presMode = UniformPresentation(nSymbs,nSeq); 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -253,7 +249,7 @@ for si=1:nSeq;
     % Show the target cue
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % show the target / show the foreground image
-    tgtIdx=find(tgtSeq(:,si)>0);
+    tgtIdx=find(presMode.getNextType()>0);
     set(tgtLimbImgs(tgtIdx),'visible','on');
     
     % ***WARNING*** Automatically adds position number to the target name!!
@@ -311,7 +307,7 @@ for si=1:nSeq;
     if ( ~isempty(symbCue) ) set(txthdl,'visible','off'); end
     drawnow;
     ev=sendEvent('stimulus.trial','end');
-    if ( ~isempty(rtbClass) ) % treat post-trial return-to-baseline as a special class
+    if (~isempty(rtbClass) ) % treat post-trial return-to-baseline as a special class
         for ei=1:ceil(intertrialDuration/epochDuration); % loop over sub-trials
             if ( ischar(rtbClass) && strcmp(rtbClass,'trialClass') ) % label as part of the trial
                 sendEvent('stimulus.target',tgtNm,ev.sample);
