@@ -2,6 +2,7 @@
 *,v
 *.dat
 *.dep
+*.asv
 *.eps
 *.lib
 *.mat

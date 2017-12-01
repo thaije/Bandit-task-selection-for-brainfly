@@ -359,7 +359,86 @@ while ( true )
     trainSubj=subject;
     fprintf('Saved %d epochs to : %s\n',numel(traindevents),fname);
 	 
+    %---------------------------------------------------------------------------------
+    % a new case for uniform sampling of different task during calibration
+      case{'calibrateuniform'}
+          baselineData = struct.empty();
+          baselineEvents = struct.empty();
+          
+          dataMap = containers.Map;
+          eventMap = containers.Map;
+
+          state = [];
+          % maybe make the start set customizable here
+          % doesn't have to perform in real time
+          [data,devents,state]=buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target','stimulus.baseline'}},'trlen_ms',opts.trlen_ms,'exitSet',{{'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
+          
+          for ei=1:numel(devents)
+              if (matchEvents(devents(ei),{'stimulus.baseline'}))
+                  % only record start events here, not end events
+                  if(strcmp(devents(ei).value,'start'))
+                      baselineData = horzcat(baselineData, data(ei));
+                      baselineEvents = horzcat(baselineEvents, devents(ei));
+                  end
+              elseif (matchEvents(devents(ei),{'stimulus.target'}))
+                  type = devents(ei).value;
+                  % check if we've already observed this type
+                  if(~dataMap.isKey(type))
+                      dataMap(type) = struct.empty();
+                  end
+                  storedData = dataMap(type);
+                  storedData = horzcat(storedData, data(ei));
+                  remove(dataMap,type);
+                  dataMap(type) = storedData;
+                  
+                  
+                  % same logic here
+                  % TODO streamline this
+                  if(~eventMap.isKey(type))
+                      % TODO find out if this works
+                      eventMap(type) = struct.empty();
+                  end
+                  storedEvent = eventMap(type);
+                  storedEvent = horzcat(storedEvent, devents(ei));
+                  remove(eventMap,type);
+                  eventMap(type) = storedEvent;
+              end
+          end
+          
+          % iterate over all types sampled above
+          k = keys(dataMap);
+          val = values(dataMap);
+          val2 = values(eventMap);
+          for i = 1:length(dataMap)
+              % concatenate baseline with data for this condition
+              outputData = horzcat(val{1,i}, baselineData);
+              outputEvents = horzcat(val2{1,i}, baselineEvents);
+              fname=[dname '_' subject '_' k{i} '_' datestr];
+              fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
+              save([fname '.mat'],'outputData','outputEvents','hdr');
+              trainSubj=subject;
+              fprintf('Saved %d epochs to : %s\n',numel(outputEvents),fname);
+              
+              % TODO generalize this more
+              % train a classifier on this type of data vs baseline.
+              [clsfr,res]=buffer_train_ersp_clsfr(outputData,outputEvents,hdr,'spatialfilter','car',...
+                  'freqband',opts.freqbandersp,'badchrm',1,'badtrrm',1,...
+                  'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,...
+                  opts.trainOpts{:});
+              clsSubj=subject;
+              fname=[cname '_' subject '_' k{i} '_' datestr];
+              fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','clsfr');
+              
+              % TODO pick the best classifier (by some metric)
+              % and save it to the default location
+              % --> so the classifier doesn't have to be manually selected
+             
+              % TODO add an event picked up by brainfly to indicate to
+              % the user what the best movement was
+          end
+          
    %---------------------------------------------------------------------------------
+   
    case {'calibrate','calibration',opts.calibrateExtraPhases{:}};
     [ntraindata,ntraindevents,state]=buffer_waitData(opts.buffhost,opts.buffport,[],'startSet',opts.epochEventType,'exitSet',{{'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'},'verb',opts.verb,'trlen_ms',opts.trlen_ms,opts.calibrateOpts{:});
     mi=matchEvents(ntraindevents,{'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]},'end'); ntraindevents(mi)=[]; ntraindata(mi)=[];%remove exit event
