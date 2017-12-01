@@ -120,7 +120,8 @@ while (ishandle(contFig))
    case {'calibrate','calibration','practice'};
        sendEvent('subject',subject);
        if ( ~isempty(strfind(phaseToRun,'calibrat')) ) % tell the sig-proc to go if real run
-           sendEvent('startPhase.cmd','calibrate')
+           % use uniform sampling here --> calibrateuninform
+           sendEvent('startPhase.cmd','calibrateuniform')
        end
        sendEvent(phaseToRun,'start');
        
