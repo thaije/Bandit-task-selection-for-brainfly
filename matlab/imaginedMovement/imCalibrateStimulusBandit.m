@@ -10,26 +10,28 @@
 % multi-armed bandit approach (random trials).
 
 
-
 % auto-configure if not done?
 %if ( ~exist('preConfigured','var') || ~isequal(preConfigured,true) ) configureIM; end;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Stimulus sequence
-% Uncomment the target sequence you need
-
+if(~exist('selectedApproach') & ~selectedApproach)
+    error('selectedApproach does not exist, please do not run directly')  
 %%%%%%%%%%%%%
 % Multi-armed bandit approach
 % Make the random target sequence (multi-armed bandit approach)
-% tgtSeq=mkStimSeqRand(nSymbs,nSeq);
+elseif(strcmp(selectedApproach,'bandit'))
+%     tgtSeq=mkStimSeqRand(nSymbs,nSeq);
+    presMode = BanditPresentation(nSymbs,nSeq); 
 
 %%%%%%%%%%%%%
 % Uniform approach
 % E.g. if we have 4 movements, and 80 trials. Then create an array af length
 % 4x80 where each movement is done (80/4=) 20 trials sequentually.
-presMode = UniformPresentation(nSymbs,nSeq); 
-
+elseif(strcmp(selectedApproach,'uniform'))
+    presMode = UniformPresentation(nSymbs,nSeq); 
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
