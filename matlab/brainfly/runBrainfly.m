@@ -154,11 +154,14 @@ while (ishandle(contFig))
             fprintf('Start approach : %s\n',approachToRun);  
             set(contFig,'visible','off');drawnow;
             approachChosen=true;
-            preConfigured=true;    
+            preConfigured=true;
+            selectedApproach=false;
             switch approachToRun;
                 case('uniform')
-                    imCalibrateStimulus;                   
+                    selectedApproach = 'uniform';
+                    imCalibrateStimulusBandit;                 
                 case('bandit')
+                    selectedApproach = 'bandit';
                     imCalibrateStimulusBandit;
                 case {'quit','exit'};
                     break;

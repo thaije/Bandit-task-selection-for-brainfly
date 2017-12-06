@@ -10,30 +10,30 @@
 % multi-armed bandit approach (random trials).
 
 
-
 % auto-configure if not done?
 %if ( ~exist('preConfigured','var') || ~isequal(preConfigured,true) ) configureIM; end;
 
+selectedApproach
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Stimulus sequence
-% Uncomment the target sequence you need
-
+if(~exist('selectedApproach') & ~selectedApproach)
+    error('selectedApproach does not exist, please do not run directly')  
 %%%%%%%%%%%%%
 % Multi-armed bandit approach
 % Make the random target sequence (multi-armed bandit approach)
-% tgtSeq=mkStimSeqRand(nSymbs,nSeq);
+elseif(strcmp(selectedApproach,'bandit'))
+    tgtSeq=mkStimSeqRand(nSymbs,nSeq);
 
 %%%%%%%%%%%%%
 % Uniform approach
 % E.g. if we have 4 movements, and 80 trials. Then create an array af length
 % 4x80 where each movement is done (80/4=) 20 trials sequentually.
-tgtSeq = [];
-for symb=1:nSymbs;
-    temp = zeros(nSymbs, nSeq/4);
-    temp(symb, :) = 1;
-    tgtSeq = cat(2,tgtSeq, temp);
+elseif(strcmp(selectedApproach,'uniform'))
+    presMode = UniformPresentation(nSymbs,nSeq); 
+    pres
 end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -177,7 +177,9 @@ progresshdl=text(axLim(1),axLim(2),sprintf('%2d/%2d',0,nSeq),...
 
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Start of the stimulus presentation loop
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % play the stimulus
 % reset the cue and fixation point to indicate trial has finished
 set(h(:),'facecolor',bgColor);
@@ -211,8 +213,9 @@ for si=1:nSeq;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Show the target cue
+    % Get baseline signal
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % show the screen to alert the subject to trial start
     set(h(1),'facecolor',fixColor); % red fixation indicates trial about to start/baseline
@@ -243,10 +246,14 @@ for si=1:nSeq;
     if ( animateFix )										  % reset fix pos
         set(h(1),'position',[stimPos(:,1)-cursorSize/2;cursorSize*[1;1]]);
     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Show the target cue
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % show the target / show the foreground image
-    tgtIdx=find(tgtSeq(:,si)>0);
+    tgtIdx=find(presMode.getNextType()>0);
     set(tgtLimbImgs(tgtIdx),'visible','on');
     
     % ***WARNING*** Automatically adds position number to the target name!!
@@ -289,7 +296,12 @@ for si=1:nSeq;
     if ( animateFix )										  % reset fix pos
         set(h(1),'position',[stimPos(:,1)-cursorSize/2;cursorSize*[1;1]]);
     end
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Reset the UI, and save the post-cue data
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % reset the cue and fixation point to indicate trial has finished
     set(tgtLimbImgs(tgtIdx),'visible','off');
     % update progress bar
@@ -299,7 +311,7 @@ for si=1:nSeq;
     if ( ~isempty(symbCue) ) set(txthdl,'visible','off'); end
     drawnow;
     ev=sendEvent('stimulus.trial','end');
-    if ( ~isempty(rtbClass) ) % treat post-trial return-to-baseline as a special class
+    if (~isempty(rtbClass) ) % treat post-trial return-to-baseline as a special class
         for ei=1:ceil(intertrialDuration/epochDuration); % loop over sub-trials
             if ( ischar(rtbClass) && strcmp(rtbClass,'trialClass') ) % label as part of the trial
                 sendEvent('stimulus.target',tgtNm,ev.sample);
@@ -313,7 +325,7 @@ for si=1:nSeq;
     else
         sleepSec(intertrialDuration);
     end
-    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     ftime=getwTime();
     fprintf('\n');
