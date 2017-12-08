@@ -75,7 +75,7 @@ nSymbs       =numel(symbCue);
 baselineClass=[]; % if set, treat baseline phase as a separate class to classify
 rtbClass     =[];% if set, treat post-trial return-to-baseline phase as separate class to classify
 
-nSeq              =20*nSymbs; % 20 examples of each target
+nSeq              =1*nSymbs; % 20 examples of each target
 epochDuration     =.75;% lots of short (750ms/trial) epochs for training the classifier
 trialDuration     =epochDuration*3*2; % = 4.5s trials
 baselineDuration  =epochDuration*2; % = 1.5s baseline
@@ -110,7 +110,8 @@ dvCalFactor='auto'; % auto-scale the continuous feedback size
 
 %----------------------------------------------------------------------------------------------
 % signal-processing configuration
-freqband      =[6 8 28 30];
+freqband = {[7 8 12 13], [17 18 22 23]} % from paper
+% freqband      =[6 8 28 30]; % default
 trlen_ms      = max(epochDuration*1000,500); % how much data to take to run the classifier on, min 500ms
 calibrateOpts ={};
 

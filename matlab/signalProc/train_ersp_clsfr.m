@@ -276,6 +276,7 @@ if( opts.verb>0) fprintf('4) Welch\n');end;
 if ( opts.timefeat ) Xt=mean(X,2);end % add a pure time feature
 [X,wopts,winFn]=welchpsd(X,2,'width_ms',opts.width_ms,'windowType',opts.windowType,'fs',fs,...
                          'aveType',opts.aveType,'detrend',1,'verb',opts.verb-1); 
+
 freqs=0:(1000/opts.width_ms):fs/2; % position of the frequency bins
 
 %5) sub-select the range of frequencies we care about
@@ -288,7 +289,7 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
     for bi=1:numel(opts.freqband);
       if(numel(opts.freqband{bi})==2)     freqbands(:,bi)=opts.freqband{bi};
       elseif(numel(opts.freqband{bi})==3) freqbands(:,bi)=opts.freqband{bi}([1 3]);
-      else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband([3 4]))];
+      else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband{bi}([3 4]))];
       end
     end
   else % standardize to band start,end
@@ -297,14 +298,17 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
     elseif(size(freqbands,1)==4)  freqbands=[mean(freqbands([1 2],:),1); mean(freqbands([3 4],:),1)];
     end
   end
-         % convert from freq-band spec in hz to weighting over frequency bins
+  
+  
+
+  % convert from freq-band spec in hz to weighting over frequency bins
   fIdx=zeros(size(X,2),size(freqbands,2));
   for bi=1:size(freqbands,2);
     [ans,lb]=min(abs(freqs-max(freqs(1),  freqbands(1,bi)))); % lower frequency bin
     [ans,ub]=min(abs(freqs-min(freqs(end),freqbands(2,bi)))); % upper frequency bin
     fIdx(lb:ub,bi)=true;
   end
-         % apply the weighting over frequency bins to get the filtered signal
+  % apply the weighting over frequency bins to get the filtered signal
   fIdx=any(fIdx,2); % merge the different band-specs
   X=X(:,fIdx,:); % sub-set to the interesting frequency range
   freqs=freqs(fIdx); % update labelling info
@@ -315,6 +319,8 @@ if ( opts.timefeat )
   X=cat(2,Xt,X);
   freqs=[0 freqs];
 end
+disp("Freqs:")
+freqs
 
 % 5.9) Apply a feature filter post-processor if wanted
 featFiltFn=opts.featFiltFn; featFiltState=[];
