@@ -278,6 +278,7 @@ if( opts.verb>0) fprintf('4) Welch\n');end;
 if ( opts.timefeat ) Xt=mean(X,2);end % add a pure time feature
 [X,wopts,winFn]=welchpsd(X,2,'width_ms',opts.width_ms,'windowType',opts.windowType,'fs',fs,...
                          'aveType',opts.aveType,'detrend',1,'verb',opts.verb-1); 
+
 freqs=0:(1000/opts.width_ms):fs/2; % position of the frequency bins
 
 %5) sub-select the range of frequencies we care about
@@ -302,8 +303,6 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
     elseif(size(freqbands,1)==4)  freqbands=[mean(freqbands([1 2],:),1); mean(freqbands([3 4],:),1)];
     end
   end
-  disp("freqbands 2")
-  freqbands
   % convert from freq-band spec in hz to weighting over frequency bins
   fIdx=zeros(size(X,2),size(freqbands,2));
   for bi=1:size(freqbands,2);
@@ -322,6 +321,8 @@ if ( opts.timefeat )
   X=cat(2,Xt,X);
   freqs=[0 freqs];
 end
+disp("Freqs:")
+freqs
 
 % 5.9) Apply a feature filter post-processor if wanted
 featFiltFn=opts.featFiltFn; featFiltState=[];

@@ -55,7 +55,6 @@ while(~endFeedback)
             type = devents(ei).value;
             % check if we've already observed this type
             if(~dataMap.isKey(type))
-                % TODO find out if this works
                 dataMap(type) = struct.empty();
             end
             storedData = dataMap(type);

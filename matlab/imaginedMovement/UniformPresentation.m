@@ -30,10 +30,11 @@ classdef UniformPresentation < PresentationMethod
             gobj = NaN;     
          end
      end
-      
-     function gobj = getClassifierForBestType(~)
-         gobj.laal = 1;
-     end
+     
+     % no-op for this method
+     function update(~,~)
+
+     end 
    end
    
    
