@@ -1,7 +1,7 @@
-function [f,fraw,p,X,isbadch,isbadtr]=apply_erp_clsfr(X,clsfr,verb)
+function [f,fraw,p,X,clsfr,isbadch,isbadtr]=apply_erp_clsfr(X,clsfr,verb)
 % apply a previously trained classifier to the input data
 % 
-%  [f,fraw,p,X]=apply_erp_clsfr(X,clsfr,verb)
+%  [f,fraw,p,X,clsfr]=apply_erp_clsfr(X,clsfr,verb)
 %
 % Inputs:
 %  X - [ ch x time (x epoch) ] data set
@@ -103,13 +103,12 @@ end
 %6) apply classifier
 [f, fraw]=applyLinearClassifier(X,clsfr);
 
-%6.5) correct classifier output for bad trials..
-if ( any(isbadtr) )
-  %if ( isfield(clsfr,'dvstats') )
-  %  f(isbadtr) = mean(clsfr.dvstats.mu(1:2)); % mean dv?
-  %else    
-    f(isbadtr) = 0;
-  %end
+%7) post-process the predictions if wanted
+if ( isfield(clsfr,'predFiltFn') && ~isempty(clsfr.predFiltFn) )
+  if( ~iscell(clsfr.predFiltFn) ) clsfr.predFiltFn={clsfr.predFiltFn}; end;
+  for ei=1:size(f,1); % incrementall call the function
+	 [f(ei,:),clsfr.predFiltState]=feval(clsfr.predFiltFn{1},f(ei,:),clsfr.predFiltState,clsfr.predFiltFn{2:end});
+  end  
 end
 
 % Pr(y==1|x,w,b), map to probability of the positive class

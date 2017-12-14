@@ -86,7 +86,7 @@ function [clsfr,res,X,Y]=train_erp_clsfr(X,Y,varargin)
               'adaptspatialfiltFn',[],'adaptspatialfiltstate',[],...
 				  'badchrm',1,'badchthresh',3.1,'badchscale',0,...
 				  'badtrrm',1,'badtrthresh',3,'badtrscale',0,...
-				  'featFiltFn',[],...
+				  'featFiltFn',[],'predFiltFn',[],...
 				  'ch_pos',[],'ch_names',[],'verb',0,'capFile','1010','overridechnms',0,...
 				  'visualize',1,'badCh',[],'nFold',10,'class_names',[],'zeroLab',1);
 [opts,varargin]=parseOpts(opts,varargin);
@@ -338,6 +338,18 @@ else
   end
 end
 
+%7) post-process the predictions if wanted
+predFiltFn=opts.predFiltFn; predFiltState=[];
+if ( ~isempty(predFiltFn) )
+   if( ~iscell(predFiltFn) ) predFiltFn={predFiltFn}; end;
+   f=res.opt.tstf;
+   for ei=1:size(f,1);
+      [f(ei,:),predFiltState]=feval(predFiltFn{1},f(ei,:),predFiltState,predFiltFn{2:end});
+   end  
+end
+
+
+
 %7) combine all the info needed to apply this pipeline to testing data
 clsfr.type        = 'ERP';
 clsfr.fs          = fs;   % sample rate of training data
@@ -362,6 +374,8 @@ clsfr.welchAveType = []; % DUMMY -- so ERP and ERSP classifier have same structu
 clsfr.freqIdx      = []; % DUMMY -- so ERP and ERSP classifier have same structure fields
 clsfr.featFiltFn   = featFiltFn; % feature normalization type
 clsfr.featFiltState= featFiltState;  % state of the feature filter
+clsfr.predFiltFn   = predFiltFn; % feature normalization type
+clsfr.predFiltState= predFiltState;  % state of the feature filter
 
 clsfr.badtrthresh = []; if ( ~isempty(trthresh) && opts.badtrscale>0 ) clsfr.badtrthresh = trthresh(end)*opts.badtrscale; end
 clsfr.badchthresh = []; if ( ~isempty(chthresh) && opts.badchscale>0 ) clsfr.badchthresh = chthresh(end)*opts.badchscale; end

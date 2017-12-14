@@ -34,8 +34,7 @@ classdef BanditPresentation < PresentationMethod
          else
             gobj = NaN;     
          end
-     end
-     
+     end     
      % update based on the observed reward
      function update(obj,rewardObserved)
          obj.policy.getReward(rewardObserved);

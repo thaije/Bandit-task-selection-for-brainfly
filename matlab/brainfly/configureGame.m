@@ -62,8 +62,8 @@ gameFrameDuration = 1/10; % 10hz screen update interval
 gameDuration = 90;
 
 % P300 stimulus info
-isi   = 1/5;
-mintti= [.6 2.0];
+isi   = 1/4;
+mintti= [1.5 3.0];
 oddballp=true; % standard/target type stimulus
 stimDuration=isi;
 
@@ -112,6 +112,7 @@ dvCalFactor='auto'; % auto-scale the continuous feedback size
 % signal-processing configuration
 freqband = {[7 8 12 13], [17 18 22 23]} % from paper
 % freqband      =[6 8 28 30]; % default
+
 trlen_ms      = max(epochDuration*1000,500); % how much data to take to run the classifier on, min 500ms
 calibrateOpts ={};
 
