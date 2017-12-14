@@ -281,8 +281,6 @@ if ( opts.timefeat ) Xt=mean(X,2);end % add a pure time feature
 freqs=0:(1000/opts.width_ms):fs/2; % position of the frequency bins
 
 %5) sub-select the range of frequencies we care about
-disp("Frequency band")
-opts.freqband
 
 fIdx=[];
 if ( ~isempty(opts.freqband) && ~isempty(fs) )
@@ -293,7 +291,7 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
     for bi=1:numel(opts.freqband);
       if(numel(opts.freqband{bi})==2)     freqbands(:,bi)=opts.freqband{bi};
       elseif(numel(opts.freqband{bi})==3) freqbands(:,bi)=opts.freqband{bi}([1 3]);
-      else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband([3 4]))];
+      else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband{bi}([3 4]))];
       end
     end
     disp("freqbands")
