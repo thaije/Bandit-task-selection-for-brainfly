@@ -156,21 +156,23 @@ while (ishandle(contFig))
             switch approachToRun;
                 case('uniform')
                     selectedApproach = 'uniform';
-                    imCalibrateStimulusMulti;                 
                 case('bandit')
                     selectedApproach = 'bandit';
-                    imCalibrateStimulusMulti;
                 case {'quit','exit'};
                     break;
             end
             preConfigured=false;
         end
-        
+
+        % get the buffer to run the appropriate strategy
         if ( ~isempty(strfind(phaseToRun,'calibrat')) ) % tell the sig-proc to go if real run
             % select the right mode for the sigProc Buffer
             phasetoRun = strcat('calibrate',selectedApproach);
             sendEvent('startPhase.cmd',phasetoRun);
         end
+        %
+        imCalibrateStimulusMulti;
+
         
        sendEvent(phaseToRun,'start');
         if ( ~isempty(strfind(phaseToRun,'calibrat')) ) sendEvent('calibrate','end'); end  

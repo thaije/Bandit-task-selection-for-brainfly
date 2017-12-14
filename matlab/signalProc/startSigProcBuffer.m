@@ -359,7 +359,7 @@ while ( true )
     trainSubj=subject;
     fprintf('Saved %d epochs to : %s\n',numel(traindevents),fname);
 	
-      case{'calibratebandit'}
+    case{'calibratebandit'}
           baselineData = struct.empty();
           baselineEvents = struct.empty();
           
@@ -377,11 +377,12 @@ while ( true )
               % variable that tracks which type to get a performance update
               % for
               typeToEstimate = '';
+              estimateNeeded = false;
               for ei=1:numel(devents)
                   % end of the feedback phase
                   if (matchEvents(devents(ei),'calibration','end'))
                       endCalibration = true;
-                  % data storage logic, same as for uniform approach
+                      % data storage logic, same as for uniform approach
                   elseif (matchEvents(devents(ei),{'stimulus.baseline'}))
                       % only record start events here, not end events
                       if(strcmp(devents(ei).value,'start'))
@@ -414,10 +415,11 @@ while ( true )
                       % flag up this type in order to be able to send an
                       % update
                       typeToEstimate = type;
+                      estimateNeeded = true;
                   end
                   
                   % if we need to estimate a type
-                  if(~strcmp(typeToEstimate,''))
+                  if(estimateNeeded)
                       % get all associated data and obtain an estimate
                       outputData = horzcat(dataMap(typeToEstimate), baselineData);
                       outputEvents = horzcat(eventMap(typeToEstimate), baselineEvents);
@@ -427,7 +429,7 @@ while ( true )
                       name = strcat(typeToEstimate,'.estimate');
                       sendEvent(name,estimate);
                       % reset
-                      typeToEstimate= '';
+                      estimateNeeded = false;
                   end
                   
               end
