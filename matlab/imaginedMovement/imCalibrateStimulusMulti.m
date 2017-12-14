@@ -293,12 +293,17 @@ for si=1:nSeq;
             sleepSec(epochDuration);
         end
     end
-    % update the sampling method with the observed reward
-    name = strcat(tgtNm,'.estimate');
-    [events,state]=buffer_newevents(buffhost,buffport,state,name);
-    estimate = events(1).value; 
-    presMode.update(estimate)
     
+    if(strcmp(selectedApproach,'bandit'))
+        % signal the buffer to send an estimate
+        sendEvent('stimulus.estimate',tgtNm);
+        
+        % update the sampling method with the observed reward
+        name = strcat(tgtNm,'.estimate');
+        [events,state]=buffer_newevents(buffhost,buffport,state,name);
+        estimate = events(1).value;
+        presMode.update(estimate)
+    end
     if ( animateFix )										  % reset fix pos
         set(h(1),'position',[stimPos(:,1)-cursorSize/2;cursorSize*[1;1]]);
     end
