@@ -23,7 +23,8 @@ if(~exist('selectedApproach') & ~selectedApproach)
 % Make the random target sequence (multi-armed bandit approach)
 elseif(strcmp(selectedApproach,'bandit'))
 %     tgtSeq=mkStimSeqRand(nSymbs,nSeq);
-    presMode = BanditPresentation(nSymbs,nSeq); 
+    % select UCB policy here
+    presMode = BanditPresentation(nSymbs,nSeq,policyUCB()); 
 
 %%%%%%%%%%%%%
 % Uniform approach
@@ -188,6 +189,7 @@ set(txthdl,'string', {calibrate_instruct{:} '' 'Click mouse when ready'}, 'visib
 % waitforbuttonpress;
 set(txthdl,'visible', 'off'); drawnow; sleepSec(intertrialDuration);
 
+state = [];
 waitforkeyTime=getwTime()+calibrateMaxSeqDuration;
 for si=1:nSeq;
     
@@ -291,6 +293,12 @@ for si=1:nSeq;
             sleepSec(epochDuration);
         end
     end
+    % update the sampling method with the observed reward
+    name = strcat(tgtNm,'.estimate');
+    [events,state]=buffer_newevents(buffhost,buffport,state,name);
+    estimate = events(1).value; 
+    presMode.update(estimate)
+    
     if ( animateFix )										  % reset fix pos
         set(h(1),'position',[stimPos(:,1)-cursorSize/2;cursorSize*[1;1]]);
     end

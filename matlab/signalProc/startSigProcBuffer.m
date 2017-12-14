@@ -358,7 +358,82 @@ while ( true )
 	save([fname '.mat'],'traindata','traindevents','hdr');
     trainSubj=subject;
     fprintf('Saved %d epochs to : %s\n',numel(traindevents),fname);
-	 
+	
+      case{'calibratebandit'}
+          baselineData = struct.empty();
+          baselineEvents = struct.empty();
+          
+          dataMap = containers.Map;
+          eventMap = containers.Map;
+          
+          state = [];
+          
+          % we need real-time performance here, so loop
+          
+          % loop till the feedback phase ends
+          endCalibration = false;
+          while(~endCalibration)
+              [data,devents,state] = buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target','stimulus.baseline'}},'trlen_ms',opts.trlen_ms,'exitSet',{'data' {'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
+              % variable that tracks which type to get a performance update
+              % for
+              typeToEstimate = '';
+              for ei=1:numel(devents)
+                  % end of the feedback phase
+                  if (matchEvents(devents(ei),'calibration','end'))
+                      endCalibration = true;
+                  % data storage logic, same as for uniform approach
+                  elseif (matchEvents(devents(ei),{'stimulus.baseline'}))
+                      % only record start events here, not end events
+                      if(strcmp(devents(ei).value,'start'))
+                          baselineData = horzcat(baselineData, data(ei));
+                          baselineEvents = horzcat(baselineEvents, devents(ei));
+                      end
+                  elseif (matchEvents(devents(ei),{'stimulus.target'}))
+                      type = devents(ei).value;
+                      % check if we've already observed this type
+                      if(~dataMap.isKey(type))
+                          dataMap(type) = struct.empty();
+                      end
+                      storedData = dataMap(type);
+                      storedData = horzcat(storedData, data(ei));
+                      remove(dataMap,type);
+                      dataMap(type) = storedData;
+                      
+                      
+                      % same logic here
+                      % TODO streamline this
+                      if(~eventMap.isKey(type))
+                          % TODO find out if this works
+                          eventMap(type) = struct.empty();
+                      end
+                      storedEvent = eventMap(type);
+                      storedEvent = horzcat(storedEvent, devents(ei));
+                      remove(eventMap,type);
+                      eventMap(type) = storedEvent;
+                      
+                      % flag up this type in order to be able to send an
+                      % update
+                      typeToEstimate = type;
+                  end
+                  
+                  % if we need to estimate a type
+                  if(~strcmp(typeToEstimate,''))
+                      % get all associated data and obtain an estimate
+                      outputData = horzcat(dataMap(typeToEstimate), baselineData);
+                      outputEvents = horzcat(eventMap(typeToEstimate), baselineEvents);
+                      
+                      % TODO add estimate here somehow
+                      estimate = rand;
+                      name = strcat(typeToEstimate,'.estimate');
+                      sendEvent(name,estimate);
+                      % reset
+                      typeToEstimate= '';
+                  end
+                  
+              end
+              
+          end
+          
     %---------------------------------------------------------------------------------
     % a new case for uniform sampling of different task during calibration
       case{'calibrateuniform'}

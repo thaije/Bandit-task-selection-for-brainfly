@@ -7,7 +7,7 @@ end
     
 methods (Abstract)
    getNextType(obj)
-   getClassifierForBestType(obj)
+   update(obj,rewardObserved)
 end
 
 end

@@ -116,11 +116,7 @@ while (ishandle(contFig))
    %---------------------------------------------------------------------------
    case {'calibrate','calibration','practice'};
        sendEvent('subject',subject);
-       if ( ~isempty(strfind(phaseToRun,'calibrat')) ) % tell the sig-proc to go if real run
-           % use uniform sampling here --> calibrateuninform
-           sendEvent('startPhase.cmd','calibrateuniform')
-       end
-       sendEvent(phaseToRun,'start');
+
        
         set(txth,'string', menuApproach(:,1))
         drawnow;
@@ -156,15 +152,23 @@ while (ishandle(contFig))
             switch approachToRun;
                 case('uniform')
                     selectedApproach = 'uniform';
-                    imCalibrateStimulusBandit;                 
+                    imCalibrateStimulusMulti;                 
                 case('bandit')
                     selectedApproach = 'bandit';
-                    imCalibrateStimulusBandit;
+                    imCalibrateStimulusMulti;
                 case {'quit','exit'};
                     break;
             end
             preConfigured=false;
         end
+        
+        if ( ~isempty(strfind(phaseToRun,'calibrat')) ) % tell the sig-proc to go if real run
+            % select the right mode for the sigProc Buffer
+            phasetoRun = strcat('calibrate',selectedApproach);
+            sendEvent('startPhase.cmd',phasetoRun);
+        end
+        
+       sendEvent(phaseToRun,'start');
         if ( ~isempty(strfind(phaseToRun,'calibrat')) ) sendEvent('calibrate','end'); end  
         set(txth,'string', menustr(:,1))
         sendEvent(phaseToRun,'end');
