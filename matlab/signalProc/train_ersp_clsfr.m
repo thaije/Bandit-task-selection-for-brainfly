@@ -282,8 +282,6 @@ if ( opts.timefeat ) Xt=mean(X,2);end % add a pure time feature
 freqs=0:(1000/opts.width_ms):fs/2; % position of the frequency bins
 
 %5) sub-select the range of frequencies we care about
-disp("Frequency band")
-opts.freqband
 
 fIdx=[];
 if ( ~isempty(opts.freqband) && ~isempty(fs) )
