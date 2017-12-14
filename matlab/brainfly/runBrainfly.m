@@ -1,4 +1,5 @@
 configureGame;
+
 % create the control window and execute the phase selection loop
 % try
 %   contFig=controller(); info=guidata(contFig); 

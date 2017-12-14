@@ -91,6 +91,8 @@ opts=struct('classify',1,'fs',[],'timeband_ms',[],'freqband',[],...
             'visualize',1,'badCh',[],'nFold',10,'class_names',[],'zeroLab',1);
 [opts,varargin]=parseOpts(opts,varargin);
 
+disp("In train ersp clsfr")
+
 % get the sampling rate
 if ( isempty(opts.fs) ) error('Sampling rate not specified!'); end;
 di=[]; ch_pos  =opts.ch_pos; ch_names=opts.ch_names;
@@ -279,6 +281,9 @@ if ( opts.timefeat ) Xt=mean(X,2);end % add a pure time feature
 freqs=0:(1000/opts.width_ms):fs/2; % position of the frequency bins
 
 %5) sub-select the range of frequencies we care about
+disp("Frequency band")
+opts.freqband
+
 fIdx=[];
 if ( ~isempty(opts.freqband) && ~isempty(fs) )
    if( opts.verb>0) fprintf('5) Select frequencies\n');end;
@@ -291,20 +296,24 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
       else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband([3 4]))];
       end
     end
+    disp("freqbands")
+    freqbands
   else % standardize to band start,end
     if(size(freqbands,1)==1)      freqbands=freqbands'; end;
     if(size(freqbands,1)==3)      freqbands=freqbands([1 3],:);
     elseif(size(freqbands,1)==4)  freqbands=[mean(freqbands([1 2],:),1); mean(freqbands([3 4],:),1)];
     end
   end
-         % convert from freq-band spec in hz to weighting over frequency bins
+  disp("freqbands 2")
+  freqbands
+  % convert from freq-band spec in hz to weighting over frequency bins
   fIdx=zeros(size(X,2),size(freqbands,2));
   for bi=1:size(freqbands,2);
     [ans,lb]=min(abs(freqs-max(freqs(1),  freqbands(1,bi)))); % lower frequency bin
     [ans,ub]=min(abs(freqs-min(freqs(end),freqbands(2,bi)))); % upper frequency bin
     fIdx(lb:ub,bi)=true;
   end
-         % apply the weighting over frequency bins to get the filtered signal
+  % apply the weighting over frequency bins to get the filtered signal
   fIdx=any(fIdx,2); % merge the different band-specs
   X=X(:,fIdx,:); % sub-set to the interesting frequency range
   freqs=freqs(fIdx); % update labelling info
