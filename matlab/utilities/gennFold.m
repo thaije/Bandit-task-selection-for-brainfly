@@ -82,7 +82,7 @@ for ci=1:size(Y,2); Y(idx==ci,ci)=1; end;
 if ( ~opts.zeroLab ); Y(:,all(Yu==0,2))=[]; Yu(all(Yu==0,2),:)=[]; end; % remove zero labelled points
 
 if ( nFold > size(Y,1) );
-  Warning('More folds than datapoints! -- switching to leave-one-out');
+  warning('More folds than datapoints! -- switching to leave-one-out');
   nFold=size(Y,1);
 end;
 
