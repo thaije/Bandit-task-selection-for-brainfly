@@ -300,7 +300,7 @@ for si=1:nSeq;
         
         % update the sampling method with the observed reward
         name = strcat(tgtNm,'.estimate');
-        [events,state]=buffer_newevents(buffhost,buffport,state,name);
+        [events,state]=buffer_newevents(buffhost,buffport,state,name,[],10000);
         estimate = events(1).value;
         presMode.update(estimate)
     end

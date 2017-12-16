@@ -417,12 +417,16 @@ while ( true )
                       % get all associated data and obtain an estimate
                       outputData = horzcat(dataMap(typeToEstimate), baselineData);
                       outputEvents = horzcat(eventMap(typeToEstimate), baselineEvents);
+                      % TODO replace this with faster, more efficient method
+                      [clsfr,res]=buffer_train_ersp_clsfr(outputData,outputEvents,hdr,'spatialfilter','car',...
+                          'freqband',opts.freqbandersp,'badchrm',1,'badtrrm',1,...
+                          'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,'visualize',0,...
+                          opts.trainOpts{:});
                       
-                      % TODO add estimate here somehow
-                      estimate = rand;
+                      estimate = res.opt.tst;
                       name = strcat(typeToEstimate,'.estimate');
                       sendEvent(name,estimate);
-                  end                  
+                  end
               end
               
           end
