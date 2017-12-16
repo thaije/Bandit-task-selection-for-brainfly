@@ -335,6 +335,9 @@ while ( true )
   if ( opts.useGUI && ishandle(contFig) ) set(contFig,'visible','off'); end;
   
   sendEvent(['sigproc.' lower(phaseToRun)],'ack'); % ack-start cmd recieved
+  disp("Phase to run:")
+  lower(phaseToRun)
+  
   switch lower(phaseToRun);
     
     %---------------------------------------------------------------------------------
@@ -358,7 +361,7 @@ while ( true )
 	save([fname '.mat'],'traindata','traindevents','hdr');
     trainSubj=subject;
     fprintf('Saved %d epochs to : %s\n',numel(traindevents),fname);
-	
+    
       case{'calibratebandit'}
           baselineData = struct.empty();
           baselineEvents = struct.empty();
@@ -389,6 +392,7 @@ while ( true )
                           baselineEvents = horzcat(baselineEvents, devents(ei));
                       end
                   elseif (matchEvents(devents(ei),{'stimulus.target'}))
+                      disp("Target stimulus!")
                       type = devents(ei).value;
                       % check if we've already observed this type
                       if(~dataMap.isKey(type))
@@ -413,11 +417,12 @@ while ( true )
                       
                       % flag up this type in order to be able to send an
                       % update
-                      typeToEstimate = type;
+                      typeToEstimate = type
                   end
                   
                   % if we need to estimate a type
                   if(~strcmp(typeToEstimate,''))
+                      disp("Going to send estimate!")
                       % get all associated data and obtain an estimate
                       outputData = horzcat(dataMap(typeToEstimate), baselineData);
                       outputEvents = horzcat(eventMap(typeToEstimate), baselineEvents);
