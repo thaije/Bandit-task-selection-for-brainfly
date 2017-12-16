@@ -335,8 +335,8 @@ while ( true )
   if ( opts.useGUI && ishandle(contFig) ) set(contFig,'visible','off'); end;
   
   sendEvent(['sigproc.' lower(phaseToRun)],'ack'); % ack-start cmd recieved
-  disp("Phase to run:")
-  lower(phaseToRun)
+  % TODO allow to customize this from the outside
+  baselineType = 'baseline';
   
   switch lower(phaseToRun);
     
@@ -361,8 +361,8 @@ while ( true )
 	save([fname '.mat'],'traindata','traindevents','hdr');
     trainSubj=subject;
     fprintf('Saved %d epochs to : %s\n',numel(traindevents),fname);
-    
-      case{'calibratebandit'}
+	
+    case{'calibratebandit'}
           baselineData = struct.empty();
           baselineEvents = struct.empty();
           
@@ -373,56 +373,47 @@ while ( true )
           
           % we need real-time performance here, so loop
           
-          % loop till the feedback phase ends
-          endCalibration = false;
-          while(~endCalibration)
-              [data,devents,state] = buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target','stimulus.baseline'}},'trlen_ms',opts.trlen_ms,'exitSet',{'data' {'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
-              % variable that tracks which type to get a performance update
-              % for
-              typeToEstimate = '';
+          % loop till the stimulus presentation phase ends
+          endStimulus = false;
+          while(~endStimulus)
+              [data,devents,state] = buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target','stimulus.estimate'}},'trlen_ms',opts.trlen_ms,'exitSet',{'data' {'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
+
               for ei=1:numel(devents)
                   % end of the feedback phase
                   if (matchEvents(devents(ei),'calibration','end'))
-                      endCalibration = true;
-                  % data storage logic, same as for uniform approach
-                  elseif (matchEvents(devents(ei),{'stimulus.baseline'}))
-                      % only record start events here, not end events
-                      if(strcmp(devents(ei).value,'start'))
+                      endStimulus = true;
+                      
+                  % both baseline and target events are labelled
+                  % 'stimulus.target' --> differ in values only
+                  elseif (matchEvents(devents(ei),{'stimulus.target'}))
+                      type = devents(ei).value;
+                      % if this is the baseline type
+                      if(strcmp(type,baselineType))
                           baselineData = horzcat(baselineData, data(ei));
                           baselineEvents = horzcat(baselineEvents, devents(ei));
+                      else
+                          % check if we've already observed this type
+                          if(~dataMap.isKey(type))
+                              dataMap(type) = struct.empty();
+                          end
+                          storedData = dataMap(type);
+                          storedData = horzcat(storedData, data(ei));
+                          
+                          remove(dataMap,type);
+                          dataMap(type) = storedData;
+                          
+                          % same logic here
+                          % TODO streamline this
+                          if(~eventMap.isKey(type))
+                              eventMap(type) = struct.empty();
+                          end
+                          storedEvent = eventMap(type);
+                          storedEvent = horzcat(storedEvent, devents(ei));
+                          remove(eventMap,type);
+                          eventMap(type) = storedEvent;
                       end
-                  elseif (matchEvents(devents(ei),{'stimulus.target'}))
-                      disp("Target stimulus!")
-                      type = devents(ei).value;
-                      % check if we've already observed this type
-                      if(~dataMap.isKey(type))
-                          dataMap(type) = struct.empty();
-                      end
-                      storedData = dataMap(type);
-                      storedData = horzcat(storedData, data(ei));
-                      remove(dataMap,type);
-                      dataMap(type) = storedData;
-                      
-                      
-                      % same logic here
-                      % TODO streamline this
-                      if(~eventMap.isKey(type))
-                          % TODO find out if this works
-                          eventMap(type) = struct.empty();
-                      end
-                      storedEvent = eventMap(type);
-                      storedEvent = horzcat(storedEvent, devents(ei));
-                      remove(eventMap,type);
-                      eventMap(type) = storedEvent;
-                      
-                      % flag up this type in order to be able to send an
-                      % update
-                      typeToEstimate = type
-                  end
-                  
-                  % if we need to estimate a type
-                  if(~strcmp(typeToEstimate,''))
-                      disp("Going to send estimate!")
+                  elseif(matchEvents(devents(ei),{'stimulus.estimate'}))
+                      typeToEstimate = devents(ei).value;
                       % get all associated data and obtain an estimate
                       outputData = horzcat(dataMap(typeToEstimate), baselineData);
                       outputEvents = horzcat(eventMap(typeToEstimate), baselineEvents);
@@ -431,10 +422,7 @@ while ( true )
                       estimate = rand;
                       name = strcat(typeToEstimate,'.estimate');
                       sendEvent(name,estimate);
-                      % reset
-                      typeToEstimate= '';
-                  end
-                  
+                  end                  
               end
               
           end
@@ -451,40 +439,40 @@ while ( true )
           state = [];
           % maybe make the start set customizable here
           % doesn't have to perform in real time
-          [data,devents,state]=buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target','stimulus.baseline'}},'trlen_ms',opts.trlen_ms,'exitSet',{{'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
+          [data,devents,state]=buffer_waitData(opts.buffhost,opts.buffport,state,'startSet',{{'stimulus.target'}},'trlen_ms',opts.trlen_ms,'exitSet',{{'calibrateuniform' 'calibrate' 'calibration' 'sigproc.reset' phaseToRun ['sigproc.' phaseToRun]} 'end'});
           
           for ei=1:numel(devents)
-              if (matchEvents(devents(ei),{'stimulus.baseline'}))
-                  % only record start events here, not end events
-                  if(strcmp(devents(ei).value,'start'))
+              % both baseline and target events are labelled
+              % 'stimulus.target' --> differ in values only
+              if (matchEvents(devents(ei),{'stimulus.target'}))
+                  type = devents(ei).value;
+                  % if this is the baseline type
+                  if(strcmp(type,baselineType))
                       baselineData = horzcat(baselineData, data(ei));
                       baselineEvents = horzcat(baselineEvents, devents(ei));
+                  else
+                      % check if we've already observed this type
+                      if(~dataMap.isKey(type))
+                          dataMap(type) = struct.empty();
+                      end
+                      storedData = dataMap(type);
+                      storedData = horzcat(storedData, data(ei));
+                      
+                      remove(dataMap,type);
+                      dataMap(type) = storedData;
+                      
+                      % same logic here
+                      % TODO streamline this
+                      if(~eventMap.isKey(type))
+                          eventMap(type) = struct.empty();
+                      end
+                      storedEvent = eventMap(type);
+                      storedEvent = horzcat(storedEvent, devents(ei));
+                      remove(eventMap,type);
+                      eventMap(type) = storedEvent;
                   end
-              elseif (matchEvents(devents(ei),{'stimulus.target'}))
-                  type = devents(ei).value;
-                  % check if we've already observed this type
-                  if(~dataMap.isKey(type))
-                      dataMap(type) = struct.empty();
-                  end
-                  storedData = dataMap(type);
-                  storedData = horzcat(storedData, data(ei));
-                  remove(dataMap,type);
-                  dataMap(type) = storedData;
-                  
-                  
-                  % same logic here
-                  % TODO streamline this
-                  if(~eventMap.isKey(type))
-                      % TODO find out if this works
-                      eventMap(type) = struct.empty();
-                  end
-                  storedEvent = eventMap(type);
-                  storedEvent = horzcat(storedEvent, devents(ei));
-                  remove(eventMap,type);
-                  eventMap(type) = storedEvent;
               end
           end
-          
           % iterate over all types sampled above
           k = keys(dataMap);
           val = values(dataMap);
