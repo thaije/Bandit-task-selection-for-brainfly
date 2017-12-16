@@ -43,6 +43,7 @@ function [clsfr,res,X,Y]=buffer_train_ersp_clsfr(X,Y,hdr,varargin);
 %  Y       -- [ppepoch x 1] pre-processed labels (N.B. will have diff num examples to input!)
 %
 % See Also: train_ersp_clsfr
+
 opts=struct('capFile','1010','overridechnms',0);
 [opts,varargin]=parseOpts(opts,varargin);
 if ( nargin<3 ) error('Insufficient arguments'); end;

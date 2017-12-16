@@ -1,0 +1,55 @@
+
+train_ersp_clsf.m variables and options
+
+ch_names  - {str} cell array of strings which label each channel
+ch_pos    - [3 x nCh] 3-d co-ordinates of the data electrodes OR {str} cell array of strings which label each channel in *1010 system*
+capFile   - 'filename' file from which to load the channel position information.  *this overrides* ch_pos if given
+ch_names  - {str} cell array of strings which label each channel
+class_names - {str} names for each of the classes in Y in *increasing* order ([])
+
+
+
+X: 
+	size  =  4 (=channels)    75 (freq bins?)     8 (= sliding window of 750ms as clsf input. Labeled in Y)
+
+	
+Y:
+  8×1 cell array
+    '1 RH'
+    '1 RH'
+    '1 RH'
+    '1 RH'
+    '1 RH'
+    '1 RH'
+    'baseline'
+    'baseline'
+	
+	
+ch_names =
+  1×4 cell array
+    'F3'    'F4'    'T3'    'C3'
+	
+
+	
+Cap file:
+F3	-60	-51
+F4	60	51
+T3	-92	0
+C3	-46	0
+Cz	0	0
+C4	46	0
+T4	92	0
+P3	-60	51
+Pz	46	-90
+P4	60	-51
+
+
+
+
+After preprocessing etc.:
+
+X:
+	size =   4 (channels)    5 (freq bins)    8 (sliding windows)
+	
+freq bins =
+     8    12    16    20    24
