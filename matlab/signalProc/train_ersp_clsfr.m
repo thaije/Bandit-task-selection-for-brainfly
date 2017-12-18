@@ -91,7 +91,7 @@ opts=struct('classify',1,'fs',[],'timeband_ms',[],'freqband',[],...
             'visualize',1,'badCh',[],'nFold',10,'class_names',[],'zeroLab',1);
 [opts,varargin]=parseOpts(opts,varargin);
 
-disp("In train ersp clsfr")
+disp('In train ersp clsfr')
 
 % get the sampling rate
 if ( isempty(opts.fs) ) error('Sampling rate not specified!'); end;
@@ -121,11 +121,11 @@ fs=opts.fs; if ( isempty(fs) ) warning('No sampling rate specified... assuming f
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Print X, Y and channel names for debugging
-disp("Original X (dimensions):")
+disp('Original X (dimensions):')
 size(X)
-disp("Original Y:")
+disp('Original Y:')
 size(Y)
-disp("Names of original channels")
+disp('Names of original channels')
 ch_names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -232,11 +232,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Print X, Y and channel names after bad channel removal
-disp("X (dimensions) after bad channel removal / SLAP:")
+disp('X (dimensions) after bad channel removal / SLAP:')
 size(X)
-disp("Y after bad channel removal / SLAP:")
+disp('Y after bad channel removal / SLAP:')
 size(Y)
-disp("Names of channels after bad channel removal / SLAP:")
+disp('Names of channels after bad channel removal / SLAP:')
 ch_names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -263,11 +263,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Print X, Y and channel names after non-target channel removal
-disp("X (dimensions) after non-target channel removal:")
+disp('X (dimensions) after non-target channel removal:')
 size(X)
-disp("Y  after non-target channel removal:")
+disp('Y  after non-target channel removal:')
 size(Y)
-disp("Names of channels after non-target channel removal:")
+disp('Names of channels after non-target channel removal:')
 ch_names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -295,7 +295,7 @@ if ( size(X,1)>=4 ) % only spatial filter if enough channels
     ch_pos=[]; 
     % re-name channels
     ch_names={};for ci=1:size(d,1); for clsi=1:size(d,2); ch_names{ci,clsi}=sprintf('SF%d.%d',clsi,ci); end; end;
-    disp("Ch_names renamed after step 3 - spatial filter")
+    disp('Ch_names renamed after step 3 - spatial filter')
     ch_names
     
     X=tprod(X,[-1 2 3],Rc,[1 -1]); % filter the data
@@ -354,7 +354,7 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
       else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband{bi}([3 4]))];
       end
     end
-    disp("freqbands")
+    disp('freqbands')
     freqbands
   else % standardize to band start,end
     if(size(freqbands,1)==1)      freqbands=freqbands'; end;
@@ -380,7 +380,7 @@ if ( opts.timefeat )
   X=cat(2,Xt,X);
   freqs=[0 freqs];
 end
-disp("Freqs:")
+disp('Freqs:')
 freqs
 
 % 5.9) Apply a feature filter post-processor if wanted
@@ -396,11 +396,11 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Print X, Y and channel names after freq bin limiting
-disp("X (dimensions) after freq bin limiting:")
+disp('X (dimensions) after freq bin limiting:')
 size(X)
-disp("Y  after freq bin limiting:")
+disp('Y  after freq bin limiting:')
 Y
-disp("Names of channels after freq bin limiting:")
+disp('Names of channels after freq bin limiting:')
 ch_names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
