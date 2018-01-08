@@ -380,7 +380,52 @@ while ( true )
 
               for ei=1:numel(devents)
                   % end of the feedback phase
-                  if (matchEvents(devents(ei),'calibration','end'))
+                  if (matchEvents(devents(ei),'calibrate','end'))
+                      % TODO standardize the following section for bandit & uniform training
+                      k = keys(dataMap);
+                      val = values(dataMap);
+                      val2 = values(eventMap);
+                      bestPerformance = 0;
+                      bestType = '';
+                      for i = 1:length(dataMap)
+                          % concatenate baseline with data for this condition
+                          outputData = horzcat(val{1,i}, baselineData);
+                          outputEvents = horzcat(val2{1,i}, baselineEvents);
+                          fname=[dname '_' subject '_' k{i} '_' datestr];
+                          fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
+                          save([fname '.mat'],'outputData','outputEvents','hdr');
+                          trainSubj=subject;
+                          fprintf('Saved %d epochs to : %s\n',numel(outputEvents),fname);
+                          
+                          % train a classifier on this type of data vs baseline.
+                          [clsfr,res]=buffer_train_ersp_clsfr(outputData,outputEvents,hdr,'spatialfilter','car',...
+                              'freqband',opts.freqbandersp,'badchrm',1,'badtrrm',1,...
+                              'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,'visualize',0,...
+                              opts.trainOpts{:});
+                          clsSubj=subject;
+                          fname=[cname '_' subject '_' k{i} '_' datestr];
+                          % save a classifier for each type of movement
+                          fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','clsfr');
+                          % save the results as well (for later analysis)
+                          res_name = [fname '_result'];
+                          fprintf('Saving results to to : %s\n',res_name);save([res_name '.mat'],'-struct','res');
+                          
+                          % select the best classifier
+                          if(res.opt.tst > bestPerformance)
+                              bestPerformance = res.opt.tst;
+                              bestClassifier = clsfr;
+                              bestType = k{i};
+                          end
+                          
+                      end
+                      % save the best classifier to the default location
+                      fname=[cname '_' subject '_' datestr];
+                      fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','bestClassifier');
+                      % send an event to the GUI thread
+                      sendEvent('stimulus.besttype',bestType);
+                      % save the best type
+                      save('bestType.mat','bestType');
+                      % end of the loop
                       endStimulus = true;
                       
                   % both baseline and target events are labelled
@@ -428,11 +473,11 @@ while ( true )
                       sendEvent(name,estimate);
                   end
               end
-              
           end
           
+
     %---------------------------------------------------------------------------------
-    % a new case for uniform sampling of different task during calibration
+    % a new case for uniform sampling of different tasks during calibration
       case{'calibrateuniform'}
           baselineData = struct.empty();
           baselineEvents = struct.empty();
@@ -481,6 +526,8 @@ while ( true )
           k = keys(dataMap);
           val = values(dataMap);
           val2 = values(eventMap);
+          bestPerformance = 0;
+          bestType = '';
           for i = 1:length(dataMap)
               % concatenate baseline with data for this condition
               outputData = horzcat(val{1,i}, baselineData);
@@ -491,23 +538,32 @@ while ( true )
               trainSubj=subject;
               fprintf('Saved %d epochs to : %s\n',numel(outputEvents),fname);
               
-              % TODO generalize this more
               % train a classifier on this type of data vs baseline.
               [clsfr,res]=buffer_train_ersp_clsfr(outputData,outputEvents,hdr,'spatialfilter','car',...
                   'freqband',opts.freqbandersp,'badchrm',1,'badtrrm',1,...
-                  'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,...
+                  'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,'visualize',0,...
                   opts.trainOpts{:});
               clsSubj=subject;
               fname=[cname '_' subject '_' k{i} '_' datestr];
+              % save a classifier for each type of movement
               fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','clsfr');
+              % save the results as well (for later analysis)
+              res_name = [fname '_result'];
+              fprintf('Saving results to to : %s\n',res_name);save([res_name '.mat'],'-struct','res');
+
+              % pick the classifier with the highest performance
+              if(res.opt.tst > bestPerformance)
+                  bestPerformance = res.opt.tst;
+                  bestClassifier = clsfr;
+                  bestType = k{i};
+              end
               
-              % TODO pick the best classifier (by some metric)
-              % and save it to the default location
-              % --> so the classifier doesn't have to be manually selected
-             
-              % TODO add an event picked up by brainfly to indicate to
-              % the user what the best movement was
           end
+          % save the best classifier to the default location
+          fname=[cname '_' subject '_' datestr];
+          fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','bestClassifier');
+          % send an event to the GUI thread
+          sendEvent('stimulus.besttype',bestType);
           
    %---------------------------------------------------------------------------------
    
