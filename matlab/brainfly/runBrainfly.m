@@ -271,49 +271,20 @@ while (ishandle(contFig))
    %---------------------------------------------------------------------------
    case {'brainfly'};
     sendEvent('subject',subject);
+    %sleepSec(.1);
     sendEvent(phaseToRun,'start');
-    set(txth,'string', menuApproach(:,1))
-    drawnow;
-    approachChosen=false;
-    while(~approachChosen)
-        set(contFig,'visible','on');
-
-        % Get key press for approach to run
-        modekey=get(contFig, 'userdata');
-        approachToRun=[];
-        if (~isempty(modekey)) 	 
-            fprintf('key=%s\n',modekey);
-            approachToRun=[];
-
-            if ( ischar(modekey(1)) )
-                ri = strncmpi(modekey(1),menuApproach(:,1),1); % get the row in the instructions
-                if ( any(ri) ) 
-                    approachToRun = menuApproach{find(ri,1),2};
-                elseif ( any(strcmp(modekey(1),{'q','Q'})) )
-                    break;
-                end
-            end
-            set(contFig,'userdata',[]);
-        end
-
-        if ( isempty(approachToRun) ) pause(.3); continue; end;
-        fprintf('Start approach : %s\n',approachToRun);  
-        set(contFig,'visible','off');drawnow;
-        approachChosen=true;
-        preConfigured=true;  
-        sendEvent('startPhase.cmd','contfeedback');     
-        switch approachToRun;
-            case('uniform')
-                brainfly;               
-            case('bandit')
-                brainflyBandit;
-            case {'quit','exit'};
-                break;
-        end
-        preConfigured=false;
+    try
+      sendEvent('startPhase.cmd','contfeedback');
+      brainfly;
+    catch
+       le=lasterror;fprintf('ERROR Caught:\n %s\n%s\n',le.identifier,le.message);
+	  	 if ( ~isempty(le.stack) )
+	  	   for i=1:numel(le.stack);
+	  	 	 fprintf('%s>%s : %d\n',le.stack(i).file,le.stack(i).name,le.stack(i).line);
+	  	   end;
+	  	 end
     end
     sendEvent('contfeedback','end');
-    set(txth,'string', menustr(:,1))
     sendEvent('test','end');
     sendEvent(phaseToRun,'end');
 
