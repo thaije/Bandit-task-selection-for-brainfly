@@ -296,7 +296,7 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
       end
     end
     %disp("freqbands")
-    freqbands
+
   else % standardize to band start,end
     if(size(freqbands,1)==1)      freqbands=freqbands'; end;
     if(size(freqbands,1)==3)      freqbands=freqbands([1 3],:);
@@ -322,7 +322,7 @@ if ( opts.timefeat )
   freqs=[0 freqs];
 end
 %disp("Freqs:")
-freqs
+
 
 % 5.9) Apply a feature filter post-processor if wanted
 featFiltFn=opts.featFiltFn; featFiltState=[];
