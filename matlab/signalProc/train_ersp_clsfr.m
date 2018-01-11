@@ -91,7 +91,7 @@ opts=struct('classify',1,'fs',[],'timeband_ms',[],'freqband',[],...
             'visualize',1,'badCh',[],'nFold',10,'class_names',[],'zeroLab',1);
 [opts,varargin]=parseOpts(opts,varargin);
 
-disp("In train ersp clsfr")
+%disp("In train ersp clsfr")
 
 % get the sampling rate
 if ( isempty(opts.fs) ) error('Sampling rate not specified!'); end;
@@ -295,8 +295,8 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
       else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband{bi}([3 4]))];
       end
     end
-    disp("freqbands")
-    freqbands
+    %disp("freqbands")
+
   else % standardize to band start,end
     if(size(freqbands,1)==1)      freqbands=freqbands'; end;
     if(size(freqbands,1)==3)      freqbands=freqbands([1 3],:);
@@ -321,8 +321,8 @@ if ( opts.timefeat )
   X=cat(2,Xt,X);
   freqs=[0 freqs];
 end
-disp("Freqs:")
-freqs
+%disp("Freqs:")
+
 
 % 5.9) Apply a feature filter post-processor if wanted
 featFiltFn=opts.featFiltFn; featFiltState=[];
