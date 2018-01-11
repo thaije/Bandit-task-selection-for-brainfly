@@ -20,6 +20,20 @@ if( isfield(clsfr,'type') && ~strcmpi(clsfr.type,'ersp') )
 end
 if ( isa(X,'single') ) eps=1e-6; else eps=1e-10; end;
 
+disp('In apply ersp clsf');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print X, Y and channel names for debugging
+disp('Original X (dimensions):')
+size(X)
+X
+% disp('Original Y:')
+% size(Y)
+% disp('Names of original channels')
+% ch_names
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %0) convert to singles (for speed)
 X=single(X);
 
@@ -55,6 +69,52 @@ if ( isfield(clsfr,'badchthresh') && ~isempty(clsfr.badchthresh) )
     car = mean(X,1); for badchi=find(isbadch)'; X(badchi,:,:)=car;end
   end
 end
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print X, Y and channel names after bad channel removal
+disp('X (dimensions) after bad channel removal / SLAP:')
+size(X)
+% disp('Y after bad channel removal / SLAP:')
+% size(Y)
+load('ch_names.mat');
+disp('Names of channels after bad channel removal / SLAP:')
+ch_names
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Remove all non-target channels from X
+
+%Channels to keep:"
+% C3 Cz C4
+targetCh = ["C3", "Cz", "C4"];
+
+% Traverse the list backwards (to avoid troubles when we delete non-target
+% channels), and remove non-target channels.
+for m = numel(ch_names):-1:1
+    if ~any(strcmp(targetCh, ch_names(m)))
+        % remove the channel from X and the ch_names
+        ch_names(m) = [];
+        X(m,:,:) = [];
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print X, Y and channel names after non-target channel removal
+disp('X (dimensions) after non-target channel removal:')
+size(X)
+% disp('Y  after non-target channel removal:')
+% size(Y)
+% disp('Names of channels after non-target channel removal:')
+% ch_names
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %4.2) time range selection
 if ( ~isempty(clsfr.timeIdx) && clsfr.timeIdx(end)<=size(X,2) && clsfr.timeIdx(1)>=1 ) 
