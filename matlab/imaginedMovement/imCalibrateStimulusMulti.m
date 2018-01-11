@@ -294,16 +294,6 @@ for si=1:nSeq;
         end
     end
     
-    if(strcmp(selectedApproach,'bandit'))
-        % signal the buffer to send an estimate
-        sendEvent('stimulus.estimate',tgtNm);
-        
-        % update the sampling method with the observed reward
-        name = strcat(tgtNm,'.estimate');
-        [events,state]=buffer_newevents(buffhost,buffport,state,name,[],10000);
-        estimate = events(1).value;
-        presMode.update(estimate)
-    end
     if ( animateFix )										  % reset fix pos
         set(h(1),'position',[stimPos(:,1)-cursorSize/2;cursorSize*[1;1]]);
     end
@@ -321,7 +311,20 @@ for si=1:nSeq;
     set(h(:),'facecolor',bgColor);
     if ( ~isempty(symbCue) ) set(txthdl,'visible','off'); end
     drawnow;
+    % request an estimate
+    if(strcmp(selectedApproach,'bandit'))
+        % signal the buffer to send an estimate
+        sendEvent('stimulus.estimate',tgtNm);
+        
+        % update the sampling method with the observed reward
+        name = strcat(tgtNm,'.estimate');
+        [events,state]=buffer_newevents(buffhost,buffport,state,name,[],10000);
+        estimate = events(1).value;
+        presMode.update(estimate)
+    end
+    
     ev=sendEvent('stimulus.trial','end');
+    
     if (~isempty(rtbClass) ) % treat post-trial return-to-baseline as a special class
         for ei=1:ceil(intertrialDuration/epochDuration); % loop over sub-trials
             if ( ischar(rtbClass) && strcmp(rtbClass,'trialClass') ) % label as part of the trial
