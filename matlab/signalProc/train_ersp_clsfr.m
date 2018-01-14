@@ -91,7 +91,7 @@ opts=struct('classify',1,'fs',[],'timeband_ms',[],'freqband',[],...
             'visualize',1,'badCh',[],'nFold',10,'class_names',[],'zeroLab',1);
 [opts,varargin]=parseOpts(opts,varargin);
 
-disp('In train ersp clsfr');
+
 
 % get the sampling rate
 if ( isempty(opts.fs) ) error('Sampling rate not specified!'); end;
@@ -118,19 +118,6 @@ if ( isempty(ch_pos) && ~isempty(opts.capFile) && (~isempty(ch_names) || opts.ov
 end
 fs=opts.fs; if ( isempty(fs) ) warning('No sampling rate specified... assuming fs=250'); fs=250; end;
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Print X, Y and channel names for debugging
-disp('Original X (dimensions):')
-size(X)
-disp('Original Y:')
-size(Y)
-disp('Names of original channels')
-ch_names
-
-%% save ch_names
-save('ch_names.mat', 'ch_names');
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %1) Detrend
 if ( opts.detrend )
@@ -233,51 +220,6 @@ if ( size(X,1)>=4 && ...
 end
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Print X, Y and channel names after bad channel removal
-disp('X (dimensions) after bad channel removal / SLAP:')
-size(X)
-disp('Y after bad channel removal / SLAP:')
-size(Y)
-disp('Names of channels after bad channel removal / SLAP:')
-ch_names
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Remove all non-target channels from X
-
-%Channels to keep:"
-% C3 Cz C4
-targetCh = ["C3", "Cz", "C4"];
-
-% Traverse the list backwards (to avoid troubles when we delete non-target
-% channels), and remove non-target channels.
-for m = numel(ch_names):-1:1
-    if ~any(strcmp(targetCh, ch_names(m)))
-        % remove the channel from X and the ch_names
-        ch_names(m) = [];
-        X(m,:,:) = [];
-    end
-end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Print X, Y and channel names after non-target channel removal
-disp('X (dimensions) after non-target channel removal:')
-size(X)
-disp('Y  after non-target channel removal:')
-size(Y)
-disp('Names of channels after non-target channel removal:')
-ch_names
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
 %2.2) time range selection
 timeIdx=[];
 if ( ~isempty(opts.timeband_ms) ) 
@@ -298,8 +240,6 @@ if ( size(X,1)>=4 ) % only spatial filter if enough channels
     ch_pos=[]; 
     % re-name channels
     ch_names={};for ci=1:size(d,1); for clsi=1:size(d,2); ch_names{ci,clsi}=sprintf('SF%d.%d',clsi,ci); end; end;
-    disp('Ch_names renamed after step 3 - spatial filter')
-    ch_names
     
     X=tprod(X,[-1 2 3],Rc,[1 -1]); % filter the data
     R = Rc*R; % compose the combined filter for test time    
@@ -350,15 +290,13 @@ if ( ~isempty(opts.freqband) && ~isempty(fs) )
    if( opts.verb>0) fprintf('5) Select frequencies\n');end;
   freqbands=opts.freqband;
   if ( iscell(opts.freqband) ) % specified as a set of pass-bands, convert to matrix version
-    freqbands=zeros(2,numel(opts.freqband))
+    freqbands=zeros(2,numel(opts.freqband));
     for bi=1:numel(opts.freqband);
       if(numel(opts.freqband{bi})==2)     freqbands(:,bi)=opts.freqband{bi};
       elseif(numel(opts.freqband{bi})==3) freqbands(:,bi)=opts.freqband{bi}([1 3]);
       else                                freqbands(:,bi)=[mean(opts.freqband{bi}([1 2])) mean(opts.freqband{bi}([3 4]))];
       end
     end
-    disp('freqbands')
-    freqbands
   else % standardize to band start,end
     if(size(freqbands,1)==1)      freqbands=freqbands'; end;
     if(size(freqbands,1)==3)      freqbands=freqbands([1 3],:);
@@ -383,8 +321,6 @@ if ( opts.timefeat )
   X=cat(2,Xt,X);
   freqs=[0 freqs];
 end
-disp('Freqs:')
-freqs
 
 % 5.9) Apply a feature filter post-processor if wanted
 featFiltFn=opts.featFiltFn; featFiltState=[];
@@ -398,12 +334,48 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Print X, Y and channel names after freq bin limiting
-disp('X (dimensions) after freq bin limiting:')
+%% save ch_names
+save('ch_names.mat', 'ch_names');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print X, Y and channel names after preprocessing
+disp('X (dimensions) after preprocessing:')
 size(X)
-disp('Y  after freq bin limiting:')
-Y
-disp('Names of channels after freq bin limiting:')
+disp('Y after preprocessing:')
+size(Y)
+disp('Names of channels after preprocessing:')
+ch_names
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Remove all non-target channels from X
+
+%Channels to keep:"
+% C3 Cz C4
+targetCh = ["C3", "Cz", "C4"];
+
+% Traverse the list backwards (to avoid troubles when we delete non-target
+% channels), and remove non-target channels.
+for m = numel(ch_names):-1:1
+    if ~any(strcmp(targetCh, ch_names(m)))
+        % remove the channel from X and the ch_names
+        ch_names(m) = [];
+        X(m,:,:) = [];
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Print X, Y and channel names after non-target channel removal
+disp('X (dimensions) after non-target channel removal:')
+size(X)
+disp('Y  after non-target channel removal:')
+size(Y)
+disp('Names of channels after non-target channel removal:')
 ch_names
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -477,6 +449,8 @@ if ( opts.visualize )
    drawnow;
    figure(erpfig);
 end
+
+
 
 %6) train classifier
 if ( ~opts.classify ) 

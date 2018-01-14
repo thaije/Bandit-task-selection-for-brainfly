@@ -13,14 +13,15 @@ predictionMargin=0;
 warpCursor = true; % cannon position is directly classifier output
 p300Flashing = false; % whether we do the p300 flashing or not
 
-                                % make a sequence of alien spawn locations
+% make a sequence of alien spawn locations
 % make the target sequence
 tgtSeq=mkStimSeqRand(2,gameDuration*2./timeBeforeNextAlien);
 lrSeq =tgtSeq(1,:)+(rand(1,size(tgtSeq,2))-.5)*.0; % l/r with a little noise
 lrSeq =max(0,min(1,lrSeq)); % bounds check
 
 %% Generate Figure:
-                                % Make the game window:
+
+% Make the game window:
 hFig = figure(2);
 set(hFig,'Name','Brainfly!'...
     ,'color',winColor...
@@ -29,7 +30,7 @@ set(hFig,'Name','Brainfly!'...
     ,'doublebuffer','on');%...
 %,'Position',[gameCanvasXLims(2) 100 gameCanvasXLims(2) gameCanvasYLims(2)]);
 
-                                % Make game axes:
+% Make game axes:
 hAxes = axes('position',[0 0 1 1]...
              ,'units','normalized'...
              ,'visible','on','box','on'...
@@ -38,61 +39,69 @@ hAxes = axes('position',[0 0 1 1]...
              ,'color',winColor,'nextplot','replacechildren','DrawMode','fast'...
              ,'xlim',gameCanvasXLims,'ylim',gameCanvasYLims,'Ydir','normal');
 
-                                % Make cannon:
+% Try to flip axes
+% camroll(-90)
+% direction = [0.5 0.5 0];
+% rotate(hAxes,direction,50);
+
+% Make cannon:
 hCannon = Cannon(hAxes);
+
+% direction = [0.5 0.5 0];
+% rotate(hCannon,direction,50);
+
 % make background for p3 stimuli
 %hbackground = rectangle('position',[gameCanvasXLims(1),gameCanvasYLims(1),diff(gameCanvasXLims),10]);
 
-
-        % make a simple odd-ball stimulus sequence, with targets mintti apart
+% make a simple odd-ball stimulus sequence, with targets mintti apart
 [stimSeq,stimTime,eventSeq] = mkStimSeqP300(1,gameDuration*2,isi,mintti,oddballp);
 stimColors = [p3tgtColor;stdColor;rtColor]; % [targetFlash, standardFlash, reactionTimeFlash]
 
-                                % add in the rt events
+% add in the rt events
 rtTimes=[];rtTime=0; 
 while rtTime < stimTime(end)
   rtTime = rtTime + rtInterval(1) + rand(1)*(rtInterval(2)-rtInterval(1));
   [ans,rtEi]=min(abs(stimTime-rtTime)); % find nearest stimulus epoch
   rtTime=stimTime(rtEi);
   rtTimes=[rtTimes; rtTime]; % record all planned rt-task times
-                                % set a block of 1s to rt stimulus color
+    % set a block of 1s to rt stimulus color
   stimSeq(1,rtEi+(0:ceil(rtDuration/isi)))=3; % stim3 = rtColor
 end
 % stimSeq is now complete with P3 and Rt stim events
 
-                                % make a sequence of alien spawn locations
+% make a sequence of alien spawn locations
 % make the target sequence
 tgtSeq=mkStimSeqRand(2,gameDuration*2./timeBeforeNextAlien);
 lrSeq =(tgtSeq(1,:)*.9+.05)+(rand(1,size(tgtSeq,2))-.5)*0; % l/r with a little noise
 
 %% Game Loop:
-                                % Set callbacks to manage the key presses:
+% Set callbacks to manage the key presses:
 set(hFig,'KeyPressFcn',@(hObj,evt) set(hObj,'userdata',evt)); %save the key; processKeys(hObj,evt,evt.Key));
-                                %  set(hFig,'KeyReleaseFcn',[]);
+%  set(hFig,'KeyReleaseFcn',[]);
 
-                                % Initialize game loop variables:
+% Initialize game loop variables:
 balls        = [];%CannonBall.empty;
 newBall      = [];
 curBalls     = [];
 lastShotTime = [];
 score        = struct('shots',0,'hits',0,'bonushits',0,'totalBonusPoss',0,'score',0);
 
-                   % simple scoreing function, top-screen=10, bottom-screen=1
+% simple scoreing function, top-screen=10, bottom-screen=1
 height2score = @(height) round(10*(height-gameCanvasYLims(1))./(gameCanvasYLims(2)-gameCanvasYLims(1)) + 1);
 cannonKills = 0;
 
-                         % Initialize buffer-prediction processing variables:
+        
+% Initialize buffer-prediction processing variables:
 buffstate=[];
 predFiltFn='gainFilt'; % additional filter function for the classifier predictions? %-contFeedbackFiltLen; % average full-trials worth of predictions
 filtstate=[];
 predType =[];
-
-                         % Make text disp (mostly for testing and debugging):
+                        
+% Make text disp (mostly for testing and debugging):
 hText = text(gameCanvasXLims(1),gameCanvasYLims(2),genTextStr(score,curBalls,cannonKills),...
              'HorizontalAlignment', 'left', 'VerticalAlignment','top','Color',txtColor);
-
-
-                       % wait for user to be ready before starting everything
+                       
+% wait for user to be ready before starting everything
 set(hText,'string', {'' 'Click mouse when ready to begin.'}, 'visible', 'on'); drawnow; pause(1);
 waitforbuttonpress;
 for i=3:-1:0;

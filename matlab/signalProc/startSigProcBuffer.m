@@ -399,6 +399,9 @@ while ( true )
                               val2{1,i}(j).value = 1;
                           end
                           outputEvents = horzcat(val2{1,i}, baselineEvents);
+                          
+                          save('baselineEvents.mat', 'baselineEvents');
+                          
                           fname=[dname '_' subject '_' k{i} '_' datestr];
                           fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
                           save([fname '.mat'],'outputData','outputEvents','hdr');

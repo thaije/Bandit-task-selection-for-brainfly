@@ -1,31 +1,20 @@
+fig=figure(2);
+set(fig,'Name','Stimulus Display','color',winColor,'menubar','none','toolbar','none','doublebuffer','on');
+set(fig,'Units','pixel');wSize=get(fig,'position');set(fig,'units','normalized');% win size in pixels
+clf;
+ax=axes('position',[0.025 0.025 .95 .95],'units','normalized','visible','off','box','off',...
+    'xtick',[],'xticklabelmode','manual','ytick',[],'yticklabelmode','manual',...
+    'color',winColor,'DrawMode','fast','nextplot','replacechildren',...
+    'xlim',[0 800],'ylim',[0 500],'Ydir','normal');
 
 
-X = load("X.mat");
-X = X.X;
-ch_names = load("ch_names.mat");
-ch_names = ch_names.ch_names;
+% axes(handles.layoutAxes);
+r = rectangle('Position',[5 5 20 20], 'FaceColor',[0 .5 .5]);
 
-disp("Original dimensions X:")
-size(X)
-disp("Original channels:")
-ch_names
+% direction = [1 0 0];
+% rotate(ax,direction,50);
 
-%Channels to keep:"
-% C3 Cz C4
-targetCh = ["C3", "Cz", "C4"];
-
-% Traverse the list backwards (to avoid troubles when we delete non-target
-% channels), and remove non-target channels.
-for m = numel(ch_names):-1:1
-    if ~any(strcmp(targetCh, ch_names(m)))
-        % remove the channel from X and the ch_names
-        ch_names(m) = [];
-        X(m,:,:) = [];
-    end
-end
-
-disp("Target channels found:")
-ch_names
-
-disp("Resulting X:")
-X
+t = hgtransform;
+surf(peaks(40),'Parent',t)
+view(-20,30)
+axis manual
