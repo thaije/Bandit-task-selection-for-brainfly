@@ -370,7 +370,7 @@ while ( true )
           eventMap = containers.Map;
           
           state = [];
-          
+          index = 1;
           % we need real-time performance here, so loop
           
           % loop till the stimulus presentation phase ends
@@ -387,9 +387,17 @@ while ( true )
                       val2 = values(eventMap);
                       bestPerformance = 0;
                       bestType = '';
+                      % do some renaming to ensure a correct mapping
+                      for i = 1 : numel(baselineEvents)
+                          baselineEvents(i).value = -1;
+                      end
                       for i = 1:length(dataMap)
                           % concatenate baseline with data for this condition
                           outputData = horzcat(val{1,i}, baselineData);
+                          % the non-baseline class becomes 1
+                          for j = 1 : numel(val2{1,i})
+                              val2{1,i}(j).value = 1;
+                          end
                           outputEvents = horzcat(val2{1,i}, baselineEvents);
                           fname=[dname '_' subject '_' k{i} '_' datestr];
                           fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
@@ -416,7 +424,6 @@ while ( true )
                               bestClassifier = clsfr;
                               bestType = k{i};
                           end
-                          
                       end
                       % save the best classifier to the default location
                       fname=[cname '_' subject '_' datestr];
@@ -425,6 +432,10 @@ while ( true )
                       sendEvent('stimulus.besttype',bestType);
                       % save the best type
                       save('bestType.mat','bestType');
+                      
+                      % save the estimate track record
+                      res_name = [fname '_estimates'];
+                      fprintf('Saving list of estimates to : %s\n',res_name);save([res_name '.mat'],'estimates');
                       % end of the loop
                       endStimulus = true;
                       
@@ -469,6 +480,10 @@ while ( true )
                           opts.trainOpts{:});
                       
                       estimate = res.opt.tst;
+                      estimates(index).type = typeToEstimate;
+                      estimates(index).estimate = estimate;
+                      index = index + 1;
+                     % temp = struct('type',typeToEstimate,'estimate',estimate);
                       name = strcat(typeToEstimate,'.estimate');
                       sendEvent(name,estimate);
                   end
@@ -528,9 +543,19 @@ while ( true )
           val2 = values(eventMap);
           bestPerformance = 0;
           bestType = '';
+          % do some renaming to ensure a correct mapping
+          for i = 1 : numel(baselineEvents)
+             baselineEvents(i).value = -1; 
+          end
           for i = 1:length(dataMap)
               % concatenate baseline with data for this condition
               outputData = horzcat(val{1,i}, baselineData);
+              
+              % the non-baseline class becomes 1
+              for j = 1 : numel(val2{1,i})
+                  val2{1,i}(j).value = 1;
+              end
+              
               outputEvents = horzcat(val2{1,i}, baselineEvents);
               fname=[dname '_' subject '_' k{i} '_' datestr];
               fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
