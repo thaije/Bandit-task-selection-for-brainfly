@@ -24,7 +24,8 @@ if(~exist('selectedApproach') & ~selectedApproach)
 elseif(strcmp(selectedApproach,'bandit'))
 %     tgtSeq=mkStimSeqRand(nSymbs,nSeq);
     % select UCB policy here
-    presMode = BanditPresentation(nSymbs,nSeq,policyUCB()); 
+    q = 2;
+    presMode = BanditPresentation(nSymbs,nSeq,policyUCB(),q); 
 
 %%%%%%%%%%%%%
 % Uniform approach
@@ -320,6 +321,7 @@ for si=1:nSeq;
         name = strcat(tgtNm,'.estimate');
         [events,state]=buffer_newevents(buffhost,buffport,state,name,[],10000);
         estimate = events(1).value;
+
         presMode.update(estimate)
     end
     

@@ -9,7 +9,7 @@ classdef Policy<handle
     end
     
     methods
-        function init(self, nbActions, horizon), end % to be called before a new game
+        function init(self, nbActions, horizon, q), end % to be called before a new game
         function a = decision(self), end % chooses the next action
         function getReward(self, reward), end % update after new observation
     end

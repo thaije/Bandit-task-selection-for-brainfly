@@ -3,10 +3,11 @@ classdef BanditPresentation < PresentationMethod
        sequenceList
        idx = 0;
        policy;
+       q;
    end
    methods
       % constructor
-      function gobj = BanditPresentation(nTypes, nTrials,policy)
+      function gobj = BanditPresentation(nTypes, nTrials,policy,q)
          if nargin > 0
             gobj.nTypes = nTypes;
             if nargin > 1
@@ -16,7 +17,7 @@ classdef BanditPresentation < PresentationMethod
          gobj.policy = policy;
          
          % initialize the policy
-         gobj.policy.init(nTypes,nTrials);
+         gobj.policy.init(nTypes,nTrials,q);
          end
       end
       
