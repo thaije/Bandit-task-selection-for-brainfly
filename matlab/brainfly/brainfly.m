@@ -91,10 +91,18 @@ predType =[];
 hText = text(gameCanvasXLims(1),gameCanvasYLims(2),genTextStr(score,curBalls,cannonKills),...
              'HorizontalAlignment', 'left', 'VerticalAlignment','top','Color',txtColor);
 
-
                        % wait for user to be ready before starting everything
 set(hText,'string', {'' 'Click mouse when ready to begin.'}, 'visible', 'on'); drawnow; pause(1);
 waitforbuttonpress;
+
+fname = 'bestType.mat';
+if (exist(fname,'file'))          
+     load(fname);
+     message = strcat('To move to the right, use: ', bestType);
+     set(hText,'string', message); drawnow; pause(1);
+     waitforbuttonpress;
+end
+
 for i=3:-1:0;
    set(hText,'string',sprintf('Starting in: %ds',i),'visible','on');drawnow;
    sleepSec(1);
