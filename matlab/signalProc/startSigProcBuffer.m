@@ -387,6 +387,7 @@ while ( true )
                       val2 = values(eventMap);
                       bestPerformance = 0;
                       bestType = '';
+                      bestIndex = 0;
                       % do some renaming to ensure a correct mapping
                       for i = 1 : numel(baselineEvents)
                           baselineEvents(i).value = -1;
@@ -399,6 +400,9 @@ while ( true )
                               val2{1,i}(j).value = 1;
                           end
                           outputEvents = horzcat(val2{1,i}, baselineEvents);
+                          
+                          save('baselineEvents.mat', 'baselineEvents');
+                          
                           fname=[dname '_' subject '_' k{i} '_' datestr];
                           fprintf('Saving %d epochs to : %s\n',numel(outputEvents),fname);
                           save([fname '.mat'],'outputData','outputEvents','hdr');
@@ -423,8 +427,18 @@ while ( true )
                               bestPerformance = res.opt.tst;
                               bestClassifier = clsfr;
                               bestType = k{i};
+                              bestIndex = i;
                           end
                       end
+                      
+                      % train again and visualize
+                      outputData = horzcat(val{1,bestIndex}, baselineData);
+                      outputEvents = horzcat(val2{1,bestIndex}, baselineEvents);
+                      [clsfr,res]=buffer_train_ersp_clsfr(outputData,outputEvents,hdr,'spatialfilter','car',...
+                          'freqband',opts.freqbandersp,'badchrm',1,'badtrrm',1,...
+                          'capFile',capFile,'overridechnms',overridechnms,'verb',opts.verb,'visualize',1,...
+                          opts.trainOpts{:});
+                      
                       % save the best classifier to the default location
                       fname=[cname '_' subject '_' datestr];
                       fprintf('Saving classifier to : %s\n',fname);save([fname '.mat'],'-struct','bestClassifier');
