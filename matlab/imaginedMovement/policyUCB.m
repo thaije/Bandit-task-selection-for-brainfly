@@ -1,5 +1,10 @@
+% This file contains a framework for Multi-armed Bandit policies for Matlab, originally from 
+% here: https://www.math.univ-toulouse.fr/~agarivie/Telecom/bandits/
+% It has been adapted to work with the UCB policy. 
+
+
 classdef policyUCB < Policy
-    % The classic UCB policy, with optimal tuning
+    % The classic UCB policy, with optimal tuningw
     % of the constant (=1/2)
     %
     % Rewards are assumed to be bounded in [0,1]
